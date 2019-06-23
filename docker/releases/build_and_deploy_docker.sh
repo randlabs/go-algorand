@@ -9,5 +9,5 @@ set -e
 SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
 cd ${SCRIPTPATH}
 
-docker build -f Dockerfile-testnet . -t algorand/testnet-telem:latest
+docker build -f Dockerfile . -t algorand/stable:latest
 docker push algorand/testnet-telem:latest
