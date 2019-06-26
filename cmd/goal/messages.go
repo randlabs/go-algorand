@@ -40,6 +40,7 @@ const (
 	warnMultisigDuplicatesDetected = "Warning: one or more duplicate addresses detected in multisig account creation. This will effectively give the duplicated address(es) extra signature weight. Continuing multisig account creation."
 	errLastRoundInvalid            = "roundLastValid needs to be well after the current round (%d)"
 	errExistingPartKey             = "Account already has a participation key valid at least until roundLastValid (%d) - current is %d"
+	errorNoAccounts                = "No accounts found"
 
 	// KMD
 	infoKMDStopped        = "Stopped kmd"

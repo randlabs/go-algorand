@@ -674,8 +674,46 @@ func GetSupply(ctx lib.ReqContext, w http.ResponseWriter, r *http.Request) {
 		Round:       uint64(balances.Round),
 		TotalMoney:  balances.TotalMoney.Raw,
 		OnlineMoney: balances.OnlineMoney.Raw,
+		AllMoney:    balances.AllMoney.Raw,
 	}
 	SendJSON(SupplyResponse{&supply}, w, ctx.Log)
+}
+
+// GetLedgerAccounts is an httpHandler for route GET /v1/ledger/accounts
+func GetLedgerAccounts(ctx lib.ReqContext, w http.ResponseWriter, r *http.Request) {
+	// swagger:operation GET /v1/ledger/accounts GetLedgerAccounts
+	//---
+	//     Summary: Get the account information for all current accounts reported by the ledger.
+	//     Produces:
+	//     - application/json
+	//     Schemes:
+	//     - http
+	//     Responses:
+	//       200:
+	//         "$ref": '#/responses/AccountsResponse'
+	//       401: { description: Invalid API Token }
+	//       default: { description: Unknown Error }
+	round, balances, err := ctx.Node.GetBalancesAndStatuses()
+	accounts := make([]Account, len(balances))
+	for i, acct := range balances {
+		pendingRewards, overflowed := basics.OSubA(acct.Money, acct.MoneyWithoutPendingRewards)
+		if overflowed {
+			err = fmt.Errorf("overflowed pending rewards: %v - %v", acct.Money, acct.MoneyWithoutPendingRewards)
+			lib.ErrorResponse(w, http.StatusInternalServerError, err, errInternalFailure, ctx.Log)
+			return
+		}
+
+		accounts[i] = Account{
+			Round:       uint64(round),
+			Address:     acct.Address.GetChecksumAddress().String(),
+			Amount: acct.Money.Raw,
+			PendingRewards: pendingRewards.Raw,
+			AmountWithoutPendingRewards: acct.MoneyWithoutPendingRewards.Raw,
+			Rewards: acct.Rewards.Raw,
+			Status: acct.Status.String(),
+		}
+	}
+	SendJSON(AccountsResponse{&accounts}, w, ctx.Log)
 }
 
 func parseTime(t string) (res time.Time, err error) {

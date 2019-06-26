@@ -99,6 +99,13 @@ var Routes = lib.Routes{
 	},
 
 	lib.Route{
+		Name:        "ledger-accounts",
+		Method:      "GET",
+		Path:        "/ledger/accounts",
+		HandlerFunc: handlers.GetLedgerAccounts,
+	},
+
+	lib.Route{
 		Name:        "list-pending-transactions",
 		Method:      "GET",
 		Path:        "/transactions/pending",

@@ -229,6 +229,48 @@ func (l *Ledger) BalanceAndStatus(addr basics.Address) (money basics.MicroAlgos,
 	return
 }
 
+// BalancesAndStatuses returns Balancees and DelegationStatuses for all accounts as one call
+func (l *Ledger) BalancesAndStatuses() (round basics.Round, accounts []basics.AccountDetail, err error) {
+	round = l.Latest()
+	allBalances, err := l.AllBalances(round)
+	if err != nil {
+		return
+	}
+
+	totals, err := l.Totals(round)
+	if err != nil {
+		return
+	}
+
+	hdr, err := l.BlockHdr(round)
+	if err != nil {
+		return
+	}
+	proto, ok := config.Consensus[hdr.CurrentProtocol]
+	if !ok {
+		err = ledger.ProtocolError(hdr.CurrentProtocol)
+	}
+
+	accounts = make([]basics.AccountDetail,0)
+	for addr, acct := range allBalances {
+		money, rewards := acct.Money(proto, totals.RewardsLevel)
+		var dataWithoutRewards basics.AccountData
+		dataWithoutRewards, err = l.LookupWithoutRewards(round, addr)
+		if err != nil {
+			return
+		}
+		accounts = append(accounts, basics.AccountDetail{
+			Address: addr,
+			Status: acct.Status,
+			Money:   money,
+			Rewards: rewards,
+			MoneyWithoutPendingRewards: dataWithoutRewards.MicroAlgos,
+		})
+	}
+
+	return
+}
+
 // Circulation implements agreement.Ledger.Circulation.
 func (l *Ledger) Circulation(r basics.Round) (basics.MicroAlgos, error) {
 	totals, err := l.Totals(r)

@@ -95,6 +95,7 @@ type Full interface {
 	GenesisHash() crypto.Digest
 	Indexer() (*indexer.Indexer, error)
 	GetTransactionByID(txid transactions.Txid, rnd basics.Round) (TxnWithStatus, error)
+	GetBalancesAndStatuses() (round basics.Round, accounts []basics.AccountDetail, err error)
 }
 
 // AlgorandFullNode is a concrete implementation of the Full interface
@@ -186,8 +187,6 @@ func MakeFull(log logging.Logger, rootDir string, cfg config.Local, phonebookDir
 	node.net = p2pNode
 	node.accountManager = data.MakeAccountManager(log)
 
-	accountListener := makeTopAccountListener(log)
-
 	// load stored data
 	genesisDir := filepath.Join(rootDir, genesis.ID())
 	ledgerPathnamePrefix := filepath.Join(genesisDir, config.LedgerFilenamePrefix)
@@ -203,10 +202,6 @@ func MakeFull(log logging.Logger, rootDir string, cfg config.Local, phonebookDir
 
 	blockListeners := []ledger.BlockListener{
 		node,
-	}
-
-	if node.config.EnableTopAccountsReporting {
-		blockListeners = append(blockListeners, &accountListener)
 	}
 
 	node.cryptoPool = execpool.MakePool(node)
@@ -417,6 +412,7 @@ func (node *AlgorandFullNode) GetSupply() basics.SupplyDetail {
 	return basics.SupplyDetail{
 		TotalMoney:  totals.Participating(),
 		OnlineMoney: totals.Online.Money,
+		AllMoney: totals.All(),
 		Round:       latest,
 	}
 }
@@ -424,6 +420,11 @@ func (node *AlgorandFullNode) GetSupply() basics.SupplyDetail {
 // GetBalanceAndStatus returns both the Balance and the Delegator status of the account, in one call so they're from the same block
 func (node *AlgorandFullNode) GetBalanceAndStatus(address basics.Address) (money basics.MicroAlgos, rewards basics.MicroAlgos, moneyWithoutPendingRewards basics.MicroAlgos, status basics.Status, round basics.Round, err error) {
 	return node.ledger.BalanceAndStatus(address)
+}
+
+// GetBalancesAndStatuses returns both the Balance and the Delegator status of all accounts, in one call so they're from the same block
+func (node *AlgorandFullNode) GetBalancesAndStatuses() (round basics.Round, accounts []basics.AccountDetail, err error) {
+	return node.ledger.BalancesAndStatuses()
 }
 
 // BroadcastSignedTxn broadcasts a transaction that has already been signed.

@@ -247,6 +247,10 @@ type Supply struct {
 	// TotalMoney
 	// Required: true
 	TotalMoney uint64 `json:"totalMoney"`
+
+	// AllMoney
+	// Required: true
+	AllMoney uint64 `json:"allMoney"`
 }
 
 // Transaction contains all fields common to all transactions and serves as an envelope to all transactions

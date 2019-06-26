@@ -174,6 +174,18 @@ func (r SupplyResponse) getBody() interface{} {
 	return r.Body
 }
 
+// AccountsResponse contains an account information
+//
+// swagger:response AccountsResponse
+type AccountsResponse struct {
+	// in: body
+	Body *[]Account
+}
+
+func (r AccountsResponse) getBody() interface{} {
+	return r.Body
+}
+
 /* Errors */
 
 // PendingTransactionsResponse contains a (potentially truncated) list of transactions and

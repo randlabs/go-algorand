@@ -410,6 +410,10 @@ type Supply struct {
 	//
 	// required: true
 	OnlineMoney uint64 `json:"onlineMoney"`
+
+	// AllMoney
+	// Required: true
+	AllMoney uint64 `json:"allMoney"`
 }
 
 // PendingTransactions represents a potentially truncated list of transactions currently in the

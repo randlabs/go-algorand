@@ -207,6 +207,12 @@ func (client RestClient) LedgerSupply() (response models.Supply, err error) {
 	return
 }
 
+// LedgerAccounts gets the supply details for the specified node's Ledger
+func (client RestClient) LedgerAccounts() (response []models.Account, err error) {
+	err = client.get(&response, "/ledger/accounts", nil)
+	return
+}
+
 type transactionsByAddrParams struct {
 	FirstRound uint64 `url:"firstRound"`
 	LastRound  uint64 `url:"lastRound"`

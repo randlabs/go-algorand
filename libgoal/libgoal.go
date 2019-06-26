@@ -626,6 +626,15 @@ func (c Client) LedgerSupply() (resp models.Supply, err error) {
 	return
 }
 
+// LedgerAccounts returns the total number of algos in the system
+func (c Client) LedgerAccounts() (resp []models.Account, err error) {
+	algod, err := c.ensureAlgodClient()
+	if err == nil {
+		resp, err = algod.LedgerAccounts()
+	}
+	return
+}
+
 // CurrentRound returns the current known round
 func (c Client) CurrentRound() (lastRound uint64, err error) {
 	// Get current round

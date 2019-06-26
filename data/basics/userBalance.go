@@ -108,6 +108,15 @@ type AccountData struct {
 // AccountDetail encapsulates meaningful details about a given account, for external consumption
 type AccountDetail struct {
 	Address Address
+	Money   MicroAlgos
+	Rewards MicroAlgos
+	MoneyWithoutPendingRewards MicroAlgos
+	Status Status
+}
+
+// AccountBalanceAndStatus encapsulates meaningful details about a given account, for external consumption
+type AccountBalanceAndStatus struct {
+	Address Address
 	Algos   MicroAlgos
 	Status  Status
 }
@@ -117,6 +126,7 @@ type SupplyDetail struct {
 	Round       Round
 	TotalMoney  MicroAlgos
 	OnlineMoney MicroAlgos
+	AllMoney    MicroAlgos
 }
 
 // BalanceDetail encapsulates meaningful details about the current balances of the ledger, for external consumption
