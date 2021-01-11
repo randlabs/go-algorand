@@ -66,3 +66,6 @@ assets
 
 index.html
 
+installer/windows/*.wixpdb
+installer/windows/*.wixobj
+installer/windows/*.msi
