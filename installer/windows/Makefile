@@ -17,15 +17,15 @@ SVCBINFOLDER=../../windows/algodsvc
 all: $(OBJ) $(MSI)
 
 $(OBJ): $(SOURCENAME).wxs
-	"$(CANDLE)" $(SOURCENAME).wxs -dGOBINFOLDER=$(GOBINFOLDER) -dSVCBINFOLDER=$(SVCBINFOLDER) -dNETWORK=$(NETWORK) -out $(OBJ) -v
+	"$(CANDLE)" $(SOURCENAME).wxs -arch x64 -dGOBINFOLDER=$(GOBINFOLDER) -dSVCBINFOLDER=$(SVCBINFOLDER) -dNETWORK=$(NETWORK) -out $(OBJ)
 
 $(MSI): $(OBJ)
 	"$(LIGHT)" $(OBJ) -out $(MSI) -v
 
 clean:
-	@rm -f $(SOURCENAME).wixobj
-	@rm -f $(SOURCENAME).wixpdb
-	@rm -f $(SOURCENAME).msi
+	@rm -f *.wixobj
+	@rm -f *.wixpdb
+	@rm -f *.msi
 
 
 

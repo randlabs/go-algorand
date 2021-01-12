@@ -2,56 +2,76 @@
 <Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
      <!-- Set service name and upgrade code depending on type of net -->
 
-        <?if $(var.NETWORK) = "betanet" ?>
-            <?define FULLSERVICENAME = "algodsvc_betanet" ?>
-            <?define FULLUPGRADECODE = 'ff190b41-c9d0-4e2f-83ba-96e508ab45bf' ?>
-        <?elseif $(var.NETWORK) = "mainnet" ?>
-            <?define FULLSERVICENAME = "algodsvc_mainnet" ?>
-            <?define FULLUPGRADECODE = 'a5fc9132-8d0b-4731-9a8f-2478a593a7a2' ?>
-        <?elseif $(var.NETWORK) = "testnet" ?>
-            <?define FULLSERVICENAME = "algodsvc_testnet" ?>
-            <?define FULLUPGRADECODE = '293a0964-5644-48c0-b79f-3031296c2c99' ?>
-        <?else ?>
-            <?error NETWORK variable must be defined to betanet, mainnet or testnet. ?>
-        <?endif ?>
+    <?if $(var.NETWORK) = "betanet" ?>
+        <?define FULLSERVICENAME = "algodsvc_betanet" ?>
+        <?define FULLUPGRADECODE = 'ff190b41-c9d0-4e2f-83ba-96e508ab45bf' ?>
+        <?define PRODUCTID = 'd9e9519a-7257-422a-8d6a-fb465023b505' ?>
+    <?elseif $(var.NETWORK) = "mainnet" ?>
+        <?define FULLSERVICENAME = "algodsvc_mainnet" ?>
+        <?define FULLUPGRADECODE = 'a5fc9132-8d0b-4731-9a8f-2478a593a7a2' ?>
+        <?define PRODUCTID = 'ba3f848c-c25d-4eaa-b2ad-04c10b2c499d' ?>
+    <?elseif $(var.NETWORK) = "testnet" ?>
+        <?define FULLSERVICENAME = "algodsvc_testnet" ?>
+        <?define FULLUPGRADECODE = '293a0964-5644-48c0-b79f-3031296c2c99' ?>
+        <?define PRODUCTID = '3b4994ac-9be1-4151-9dbd-3a4abd59cb4f' ?>
+    <?else ?>
+        <?error NETWORK variable must be defined to betanet, mainnet or testnet. ?>
+    <?endif ?>
 
-        <?ifndef GOBINFOLDER ?>
-            <?error Required GOBINFOLDER variable not set ?>
-        <?endif ?>
-        <?ifndef SVCBINFOLDER ?>
-            <?error Required SVCBINFOLDER variable not set ?>
-        <?endif ?>
+    <?ifndef GOBINFOLDER ?>
+        <?error Required GOBINFOLDER variable not set ?>
+    <?endif ?>
+    <?ifndef SVCBINFOLDER ?>
+        <?error Required SVCBINFOLDER variable not set ?>
+    <?endif ?>
 
-        <!-- <?define GENESISFILE = '../genesis/$(var.NETWORK)/genesis.json' ?> -->
+    <?define GENESISFILE = '../genesis/$(var.NETWORK)/genesis.json' ?>
 
     <Product Name='Algorand' Manufacturer='Algorand Foundation'
-        Id='e5bb0ec9-e63b-47dd-bfa7-a937f852c1ba'
+        Id="$(var.PRODUCTID)"
         UpgradeCode="$(var.FULLUPGRADECODE)"
         Language='1033' Codepage='1252' Version='1.0.0'>
-        <Package Id='*' Keywords='Installer' Description="Algorand Node Installer for Windows"
+        <Package Id='*' Keywords='Installer' Description="Algorand Node Installer for Windows ($var.NETWORK)"
             InstallScope="perMachine"
             Manufacturer='Rand Labs'
             Comments='2021 Algorand llc'
-            InstallerVersion='100'
+            InstallerVersion='200'
             Languages='1033'
             Compressed='yes'
             SummaryCodepage='1252' />
 
+        <Condition Message="This application is only supported on Windows 8 or higher."><![CDATA[VersionNT >= 602]]></Condition>
+        <Condition Message="[ProductName] cannot be installed on a 32-bit operating system."><![CDATA[VersionNT64]]></Condition>
+
+        <!-- Set NODEDATADIR to ProgramData\Algorand\[network]\data if absent
+        <Property Id="NODEDATADIR" Admin="yes" />
+        <SetProperty Id="NODEDATADIR" Sequence="execute" Before="AppSearch" Value="[CommonAppDataFolder]">NOT NODEDATADIR</SetProperty>
+
+        -->
+
         <Media Id='1' Cabinet='Algorand.cab' EmbedCab='yes' DiskPrompt='Disk 1' />
         <Property Id='DiskPrompt' Value="Algorand Node Installer Media" />
-        <!-- <Directory Id='NodeDataDir' Name='$(var.NODEDATADIR)'>
-            <Component Id='genesisfile'>
-                <File Id="genesisjson" Name="genesis.json" DiskId="1" Source="$(var.GENESISFILE)"
-            </Component>
-        </Directory> -->
-        
+
         <Directory Id='TARGETDIR' Name='SourceDir'>
+            <Directory Id='CommonAppDataFolder'>
+                <Directory Id='NodeDataDirAlgorand' Name='Algorand'>
+                    <Directory Id='NodeDataDirAlgorandData' Name='data'>
+                        <Directory Id='NodeDataDirAlgorandDataNetSpecific' Name='$(var.NETWORK)'>
+                            <Component Id='genesisfile' Guid='2c0a4424-5b60-4ea9-8018-6ba8ccc1c067'>
+                                <File Id="genesisjson" Name="genesis.json" DiskId="1" Source="$(var.GENESISFILE)" />
+                            </Component>
+                        </Directory>
+                    </Directory>
+                </Directory>
+            </Directory> 
+
             <Directory Id="ProgramMenuFolder">
-                <Directory Id="ApplicationProgramsFolder" Name="My Application Name"/>
+                <Directory Id="ApplicationProgramsFolder" Name="Algorand $(var.NETWORK)"/>
             </Directory>
-            <Directory Id='ProgramFilesFolder' Name='PFiles'>
-                <Directory Id='INSTALLDIR' Name='Algorand'>
-                   
+
+            <Directory Id='ProgramFiles64Folder' Name='PFiles'>
+                <Directory Id='INSTALLDIR' Name='Algorand '>
+                <Directory Id='netspecificdir' Name='$(var.NETWORK)'>
                     <Component Id='AlgorandNodeService' Guid="*">
                         <ServiceInstall
                             Id="AlgodsvcInstaller"
@@ -228,6 +248,7 @@
                         <File Id="updater" Name="updater.exe" DiskId="1" Source="$(var.GOBINFOLDER)/updater.exe" KeyPath="yes" />
                     </Component>
                 </Directory>
+                </Directory>
             </Directory>
         </Directory>
         <DirectoryRef Id="ApplicationProgramsFolder">
@@ -237,10 +258,12 @@
                 Target="powershell.exe"
                 WorkingDirectory="TARGETDIR"/>
             <RemoveFolder Id="CleanUpShortCut" Directory="ApplicationProgramsFolder" On="uninstall"/>
+            <RegistryValue Root="HKCU" Key="Software\Algorand\Node" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
             </Component>
-        </DirectoryRef>
+        </DirectoryRef> 
 
         <Feature Id='Complete' Level='1'>
+            <ComponentRef Id='genesisfile' />
             <ComponentRef Id='AlgorandNodeService'/>
             <ComponentRef Id='BINCOMP_algocfg' />
             <ComponentRef Id='BINCOMP_algod'/>
