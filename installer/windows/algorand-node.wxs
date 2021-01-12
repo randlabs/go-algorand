@@ -26,28 +26,26 @@
     <?endif ?>
 
     <?define GENESISFILE = '../genesis/$(var.NETWORK)/genesis.json' ?>
+    <?define SAMPLECONFIGFILE = '../config.json.example' ?>
 
-    <Product Name='Algorand' Manufacturer='Algorand Foundation'
+    <Product Name='Algorand Node $(var.NETWORK)' Manufacturer='Algorand Foundation'
         Id="$(var.PRODUCTID)"
         UpgradeCode="$(var.FULLUPGRADECODE)"
         Language='1033' Codepage='1252' Version='1.0.0'>
         <Package Id='*' Keywords='Installer' Description="Algorand Node Installer for Windows ($var.NETWORK)"
             InstallScope="perMachine"
             Manufacturer='Rand Labs'
-            Comments='2021 Algorand llc'
+            Comments='2021 Algorand llc' 
             InstallerVersion='200'
             Languages='1033'
             Compressed='yes'
             SummaryCodepage='1252' />
 
+        <Icon Id="AlgoIconBlack.ico" SourceFile="AlgoIconBlack.ico"/>
+        <Property Id="ARPPRODUCTICON" Value="AlgoIconBlack.ico" />
+
         <Condition Message="This application is only supported on Windows 8 or higher."><![CDATA[VersionNT >= 602]]></Condition>
         <Condition Message="[ProductName] cannot be installed on a 32-bit operating system."><![CDATA[VersionNT64]]></Condition>
-
-        <!-- Set NODEDATADIR to ProgramData\Algorand\[network]\data if absent
-        <Property Id="NODEDATADIR" Admin="yes" />
-        <SetProperty Id="NODEDATADIR" Sequence="execute" Before="AppSearch" Value="[CommonAppDataFolder]">NOT NODEDATADIR</SetProperty>
-
-        -->
 
         <Media Id='1' Cabinet='Algorand.cab' EmbedCab='yes' DiskPrompt='Disk 1' />
         <Property Id='DiskPrompt' Value="Algorand Node Installer Media" />
@@ -60,37 +58,51 @@
                             <Component Id='genesisfile' Guid='2c0a4424-5b60-4ea9-8018-6ba8ccc1c067'>
                                 <File Id="genesisjson" Name="genesis.json" DiskId="1" Source="$(var.GENESISFILE)" />
                             </Component>
+                            <Component Id='configfile' Guid='a7b7760e-ad84-4caa-aec0-938c0641d4ec'>
+                                <File Id="configfile" Name="config.json" DiskId="1" Source="$(var.SAMPLECONFIGFILE)" />
+                            </Component>
                         </Directory>
                     </Directory>
                 </Directory>
             </Directory> 
 
             <Directory Id="ProgramMenuFolder">
-                <Directory Id="ApplicationProgramsFolder" Name="Algorand $(var.NETWORK)"/>
+                <Directory Id="ApplicationProgramsFolder" Name="Algorand $(var.NETWORK)">
+                    <Component Id="CommandLineToolsShortcut" Guid="*">
+                        <Shortcut Id="CommandLineTools" Name="Algorand Command Line Tools ($(var.NETWORK))" Target="powershell.exe" WorkingDirectory="INSTALLFOLDER"/>
+                        <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
+                        <RegistryValue Root="HKCU" Key="Software\Algorand\Node" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
+                    </Component>
+                </Directory>
             </Directory>
 
             <Directory Id='ProgramFiles64Folder' Name='PFiles'>
-                <Directory Id='INSTALLDIR' Name='Algorand '>
-                <Directory Id='netspecificdir' Name='$(var.NETWORK)'>
+                <Directory Id='INSTALLDIR' Name='Algorand'>
+                <Directory Id='common' Name='Common'>
+                    <Directory Id='commonbin' Name='Bin'>
                     <Component Id='AlgorandNodeService' Guid="*">
                         <ServiceInstall
                             Id="AlgodsvcInstaller"
                             Type="ownProcess"
                             Name="algodsvc_$(var.NETWORK)"
-                            DisplayName="Algorand Node Service ( $(var.NETWORK) )"
+                            DisplayName="Algorand Node Service ($(var.NETWORK))"
                             Description="Controller service for the Algorand node daemon (algod) under $(var.NETWORK) network"
                             Start="demand"
                             Account= "NT Authority\NetworkService"
+                            Arguments="$(var.NETWORK) \"[NodeDataDirAlgorandDataNetSpecific]\" \"[INSTALLDIR]algod.exe\""
                             ErrorControl="normal"/>
                         <File Id="algodsvc" Name="algodsvc.exe" DiskId="1" Source="$(var.SVCBINFOLDER)/algodsvc.exe" KeyPath="yes" />
-                        <RegistryKey Key="SYSTEM\CurrentControlSet\Services\algodsvc\Parameters" Root="HKLM">
-                            <RegistryValue Id="REG_NodeDataDir" Type="string" Name="NodeDataDirectory" Value="[INSTALLDIR]/data" />
-                            <RegistryValue Id="REG_Algodexe" Type="string" Name="AlgodExeFileName" Value="[INSTALLDIR]/algod.exe" />
+                        <RegistryKey Key="SYSTEM\CurrentControlSet\Services\algodsvc_$(var.NETWORK)\Parameters" Root="HKLM">
+                            <RegistryValue Id="REG_NodeDataDir" Type="string" Name="NodeDataDirectory" Value="[NodeDataDirAlgorandDataNetSpecific]" />
+                            <RegistryValue Id="REG_Algodexe" Type="string" Name="AlgodExeFileName" Value="[INSTALLDIR]algod.exe" />
                         </RegistryKey>
                         <RegistryKey Key="SYSTEM\CurrentControlSet\Services\EventLog\Application\Algorand Node Service" Root="HKLM">
-                            <RegistryValue Id="REG_EvMsgFile" Type="string" Name="EventMessageFile" Value="[INSTALLDIR]/algodsvc.exe" />
+                            <RegistryValue Id="REG_EvMsgFile" Type="string" Name="EventMessageFile" Value="[INSTALLDIR]algodsvc_$(var.NETWORK).exe" />
                         </RegistryKey>
                     </Component>
+                    </Directory>
+                </Directory>
+                <Directory Id='netspecificdir' Name='$(var.NETWORK)'>
                     <Component Id='BINCOMP_algocfg' Guid='*'>
                         <File Id="algocfg" Name="algocfg.exe" DiskId="1" Source="$(var.GOBINFOLDER)/algocfg.exe" KeyPath="yes" />
                     </Component>
@@ -251,19 +263,10 @@
                 </Directory>
             </Directory>
         </Directory>
-        <DirectoryRef Id="ApplicationProgramsFolder">
-            <Component Id="CommandLineToolsShortcut" Guid="1cf43da6-bfdc-496e-bc64-dd2d2c4b551b">
-                <Shortcut Id="CommandLineTools" 
-                Name="Algorand Command Line Tools ($(var.NETWORK))"
-                Target="powershell.exe"
-                WorkingDirectory="TARGETDIR"/>
-            <RemoveFolder Id="CleanUpShortCut" Directory="ApplicationProgramsFolder" On="uninstall"/>
-            <RegistryValue Root="HKCU" Key="Software\Algorand\Node" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
-            </Component>
-        </DirectoryRef> 
 
         <Feature Id='Complete' Level='1'>
             <ComponentRef Id='genesisfile' />
+            <ComponentRef Id='configfile' />
             <ComponentRef Id='AlgorandNodeService'/>
             <ComponentRef Id='BINCOMP_algocfg' />
             <ComponentRef Id='BINCOMP_algod'/>
