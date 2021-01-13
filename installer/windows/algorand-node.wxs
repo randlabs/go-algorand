@@ -28,11 +28,11 @@
     <?define GENESISFILE = '../genesis/$(var.NETWORK)/genesis.json' ?>
     <?define SAMPLECONFIGFILE = '../config.json.example' ?>
 
-    <Product Name='Algorand Node $(var.NETWORK)' Manufacturer='Algorand Foundation'
+    <Product Name='Algorand Node ($(var.NETWORK))' Manufacturer='Algorand Foundation'
         Id="$(var.PRODUCTID)"
         UpgradeCode="$(var.FULLUPGRADECODE)"
         Language='1033' Codepage='1252' Version='1.0.0'>
-        <Package Id='*' Keywords='Installer' Description="Algorand Node Installer for Windows ($var.NETWORK)"
+        <Package Id='*' Keywords='Installer' Description="Algorand Node Installer for Windows ($(var.NETWORK))"
             InstallScope="perMachine"
             Manufacturer='Rand Labs'
             Comments='2021 Algorand llc' 
@@ -89,15 +89,11 @@
                             Description="Controller service for the Algorand node daemon (algod) under $(var.NETWORK) network"
                             Start="demand"
                             Account= "NT Authority\NetworkService"
-                            Arguments="$(var.NETWORK) \"[NodeDataDirAlgorandDataNetSpecific]\" \"[INSTALLDIR]algod.exe\""
+                            Arguments="$(var.NETWORK) &quot;[netspecificdir]algod.exe&quot;  &quot;[NodeDataDirAlgorandDataNetSpecific]&quot; " 
                             ErrorControl="normal"/>
                         <File Id="algodsvc" Name="algodsvc.exe" DiskId="1" Source="$(var.SVCBINFOLDER)/algodsvc.exe" KeyPath="yes" />
-                        <RegistryKey Key="SYSTEM\CurrentControlSet\Services\algodsvc_$(var.NETWORK)\Parameters" Root="HKLM">
-                            <RegistryValue Id="REG_NodeDataDir" Type="string" Name="NodeDataDirectory" Value="[NodeDataDirAlgorandDataNetSpecific]" />
-                            <RegistryValue Id="REG_Algodexe" Type="string" Name="AlgodExeFileName" Value="[INSTALLDIR]algod.exe" />
-                        </RegistryKey>
                         <RegistryKey Key="SYSTEM\CurrentControlSet\Services\EventLog\Application\Algorand Node Service" Root="HKLM">
-                            <RegistryValue Id="REG_EvMsgFile" Type="string" Name="EventMessageFile" Value="[INSTALLDIR]algodsvc_$(var.NETWORK).exe" />
+                            <RegistryValue Id="REG_EvMsgFile" Type="string" Name="EventMessageFile" Value="[commonbin]algodsvc.exe" />
                         </RegistryKey>
                     </Component>
                     </Directory>
