@@ -66,6 +66,13 @@ assets
 
 index.html
 
+# Windows installer and service output files
+
 installer/windows/*.wixpdb
 installer/windows/*.wixobj
 installer/windows/*.msi
+windows/algodsvc/*.exe
+windows/algodsvc/MSG00001.bin
+windows/algodsvc/algodsvc.rc
+windows/algodsvc/algodsvc.h
+windows/algodsvc/algodsvc_res.o
