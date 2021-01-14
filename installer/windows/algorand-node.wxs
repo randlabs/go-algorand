@@ -1,5 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
-<Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
+<Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'
+     xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
      <!-- Set service name and upgrade code depending on type of net -->
 
     <?if $(var.NETWORK) = "betanet" ?>
@@ -95,7 +96,7 @@
                     <Component Id="AlgorandShortcuts" Guid="*">
                         <Shortcut Id="CommandLineTools" Name="Algorand Command Line Tools" 
                             Target="[System64Folder]cmd.exe"
-                            Arguments="C:\Windows\System32\cmd.exe /k cd /d &quot;[netspecificdir]&quot;"
+                            Arguments="/k cd /d &quot;[netspecificdir]&quot;"
                             WorkingDirectory="netspecificdir"
                             Show="normal"/>
 
@@ -112,7 +113,7 @@
                             Show="normal"/>
 
                         <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
-                        <RegistryValue Root="HKCU" Key="Software\Algorand\Node" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
+                        <RegistryValue Root="HKCU" Key="Software\Algorand\Node\$(var.NETWORK)" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
                     </Component>
                 </Directory>
             </Directory>
