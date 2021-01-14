@@ -28,6 +28,10 @@
     <?define GENESISFILE = '../genesis/$(var.NETWORK)/genesis.json' ?>
     <?define SAMPLECONFIGFILE = '../config.json.example' ?>
 
+ 
+
+
+
     <Product Name='Algorand Node ($(var.NETWORK))' Manufacturer='Algorand Foundation'
         Id="$(var.PRODUCTID)"
         UpgradeCode="$(var.FULLUPGRADECODE)"
@@ -42,14 +46,32 @@
             SummaryCodepage='1252' />
 
         <UIRef Id="WixUI_Minimal" />
+        <WixVariable Id="WixUILicenseRtf" Value="COPYING.rtf" />
 
         <Icon Id="AlgoIconBlack.ico" SourceFile="AlgoIconBlack.ico"/>
         <Property Id="ARPPRODUCTICON" Value="AlgoIconBlack.ico" />
 
+        <!-- This CA just strips the trailing slash as a workaround
+         for the shortcut argument to cmd.exe /k goal.exe -d -->
+
+        <CustomAction Id="RemoveTrailingSlash" Script="vbscript">
+        <![CDATA[         
+            value = Session.Property("NodeDataDirAlgorandDataNetSpecific")
+            If Right(value, 1) = "\" Then
+                value = Left(value, Len(value) - 1) 
+            End If
+            Session.Property("NodeDataDirAlgorandDataNetSpecific2") = value      
+        ]]>
+        </CustomAction>
+
+        <InstallExecuteSequence>
+            <Custom Action="RemoveTrailingSlash" After="CostFinalize">NOT REMOVE</Custom>
+        </InstallExecuteSequence>
+
         <Condition Message="This application is only supported on Windows 8 or higher."><![CDATA[VersionNT >= 602]]></Condition>
         <Condition Message="[ProductName] cannot be installed on a 32-bit operating system."><![CDATA[VersionNT64]]></Condition>
 
-        <Media Id='1' Cabinet='Algorand.cab' EmbedCab='yes' DiskPrompt='Disk 1' />
+        <Media Id='1' Cabinet='Algorand_$(var.NETWORK).cab' EmbedCab='yes' DiskPrompt='Disk 1' />
         <Property Id='DiskPrompt' Value="Algorand Node Installer Media" />
 
         <Directory Id='TARGETDIR' Name='SourceDir'>
@@ -79,7 +101,7 @@
 
                         <Shortcut Id="NodeStatusWatch" Name="Node Status Watch" 
                             Target="[System64Folder]cmd.exe"
-                            Arguments="/k &quot;&quot;[netspecificdir]goal.exe&quot; node status -w 1000 -d &quot;[NodeDataDirAlgorandDataNetSpecific]&quot;&quot;"
+                            Arguments="/k &quot;&quot;[netspecificdir]goal.exe&quot; node status -w 1000 -d &quot;[NodeDataDirAlgorandDataNetSpecific2]&quot;&quot;"
                             WorkingDirectory="netspecificdir"
                             Show="normal"/>
 
@@ -99,7 +121,7 @@
                 <Directory Id='INSTALLDIR' Name='Algorand'>
                 <Directory Id='common' Name='Common'>
                     <Directory Id='commonbin' Name='Bin'>
-                    <Component Id='AlgorandNodeService' Guid="*">
+                    <Component Id='AlgorandNodeService' Guid="244f1bfb-7ceb-4c05-b6b4-9dd1f7a5f88d">
                         <ServiceInstall
                             Id="AlgodsvcInstaller"
                             Type="ownProcess"
@@ -110,6 +132,7 @@
                             Account= "NT Authority\NetworkService"
                             Arguments="$(var.NETWORK) &quot;[netspecificdir]algod.exe&quot;  &quot;[NodeDataDirAlgorandDataNetSpecific]" 
                             ErrorControl="normal"/>
+                        <ServiceControl Id="Sc_AlgodSvc" Name="algodsvc_$(var.NETWORK)" Remove="uninstall" Stop="both" Wait="yes"/> 
                         <File Id="algodsvc" Name="algodsvc.exe" DiskId="1" Source="$(var.SVCBINFOLDER)/algodsvc.exe" KeyPath="yes" />
                         <RegistryKey Key="SYSTEM\CurrentControlSet\Services\EventLog\Application\Algorand Node Service" Root="HKLM">
                             <RegistryValue Id="REG_EvMsgFile" Type="string" Name="EventMessageFile" Value="[commonbin]algodsvc.exe" />
