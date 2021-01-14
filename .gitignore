@@ -76,3 +76,4 @@ windows/algodsvc/MSG00001.bin
 windows/algodsvc/algodsvc.rc
 windows/algodsvc/algodsvc.h
 windows/algodsvc/algodsvc_res.o
+installer/windows/cabs/
