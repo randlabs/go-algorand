@@ -17,10 +17,10 @@ SVCBINFOLDER=../../windows/algodsvc
 all: $(OBJ) $(MSI)
 
 $(OBJ): $(SOURCENAME).wxs
-	"$(CANDLE)" $(SOURCENAME).wxs -arch x64 -dGOBINFOLDER=$(GOBINFOLDER) -dSVCBINFOLDER=$(SVCBINFOLDER) -dNETWORK=$(NETWORK) -out $(OBJ)
+	"$(CANDLE)" $(SOURCENAME).wxs -arch x64 -dGOBINFOLDER=$(GOBINFOLDER) -dSVCBINFOLDER=$(SVCBINFOLDER) -dNETWORK=$(NETWORK) -out $(OBJ) -v
 
 $(MSI): $(OBJ)
-	"$(LIGHT)" $(OBJ) -out $(MSI) -v
+	"$(LIGHT)" -ext WixUIExtension $(OBJ) -out $(MSI) -reusecab -cc cabs -v
 
 clean:
 	@rm -f *.wixobj

@@ -41,6 +41,8 @@
             Compressed='yes'
             SummaryCodepage='1252' />
 
+        <UIRef Id="WixUI_Minimal" />
+
         <Icon Id="AlgoIconBlack.ico" SourceFile="AlgoIconBlack.ico"/>
         <Property Id="ARPPRODUCTICON" Value="AlgoIconBlack.ico" />
 
@@ -66,10 +68,27 @@
                 </Directory>
             </Directory> 
 
-            <Directory Id="ProgramMenuFolder">
-                <Directory Id="ApplicationProgramsFolder" Name="Algorand $(var.NETWORK)">
-                    <Component Id="CommandLineToolsShortcut" Guid="*">
-                        <Shortcut Id="CommandLineTools" Name="Algorand Command Line Tools ($(var.NETWORK))" Target="powershell.exe" WorkingDirectory="INSTALLFOLDER"/>
+            <Directory Id="ProgramMenuFolder" Name="Programs">
+                <Directory Id="ApplicationProgramsFolder" Name="Algorand Node ($(var.NETWORK))">
+                    <Component Id="AlgorandShortcuts" Guid="*">
+                        <Shortcut Id="CommandLineTools" Name="Algorand Command Line Tools" 
+                            Target="[System64Folder]cmd.exe"
+                            Arguments="C:\Windows\System32\cmd.exe /k cd /d &quot;[netspecificdir]&quot;"
+                            WorkingDirectory="netspecificdir"
+                            Show="normal"/>
+
+                        <Shortcut Id="NodeStatusWatch" Name="Node Status Watch" 
+                            Target="[System64Folder]cmd.exe"
+                            Arguments="/k &quot;&quot;[netspecificdir]goal.exe&quot; node status -w 1000 -d &quot;[NodeDataDirAlgorandDataNetSpecific]&quot;&quot;"
+                            WorkingDirectory="netspecificdir"
+                            Show="normal"/>
+
+                        <Shortcut Id="Config" Name="Node Configuration" 
+                            Target="[System64Folder]notepad.exe"
+                            Arguments="&quot;[NodeDataDirAlgorandDataNetSpecific]config.json&quot;"
+                            WorkingDirectory="NodeDataDirAlgorandDataNetSpecific"
+                            Show="normal"/>
+
                         <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
                         <RegistryValue Root="HKCU" Key="Software\Algorand\Node" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
                     </Component>
@@ -89,7 +108,7 @@
                             Description="Controller service for the Algorand node daemon (algod) under $(var.NETWORK) network"
                             Start="demand"
                             Account= "NT Authority\NetworkService"
-                            Arguments="$(var.NETWORK) &quot;[netspecificdir]algod.exe&quot;  &quot;[NodeDataDirAlgorandDataNetSpecific]&quot; " 
+                            Arguments="$(var.NETWORK) &quot;[netspecificdir]algod.exe&quot;  &quot;[NodeDataDirAlgorandDataNetSpecific]" 
                             ErrorControl="normal"/>
                         <File Id="algodsvc" Name="algodsvc.exe" DiskId="1" Source="$(var.SVCBINFOLDER)/algodsvc.exe" KeyPath="yes" />
                         <RegistryKey Key="SYSTEM\CurrentControlSet\Services\EventLog\Application\Algorand Node Service" Root="HKLM">
@@ -316,7 +335,7 @@
             <ComponentRef Id='BINCOMP_tealdbg' />
             <ComponentRef Id='BINCOMP_update' />
             <ComponentRef Id='BINCOMP_updater' />
-            <ComponentRef Id='CommandLineToolsShortcut' />
+            <ComponentRef Id='AlgorandShortcuts' />
         </Feature>
     </Product>
 </Wix>
