@@ -29,10 +29,6 @@
     <?define GENESISFILE = '../genesis/$(var.NETWORK)/genesis.json' ?>
     <?define SAMPLECONFIGFILE = '../config.json.example' ?>
 
- 
-
-
-
     <Product Name='Algorand Node ($(var.NETWORK))' Manufacturer='Algorand Foundation'
         Id="$(var.PRODUCTID)"
         UpgradeCode="$(var.FULLUPGRADECODE)"
@@ -41,17 +37,23 @@
             InstallScope="perMachine"
             Manufacturer='Rand Labs'
             Comments='2021 Algorand llc' 
-            InstallerVersion='200'
+            InstallerVersion='500'
             Languages='1033'
             Compressed='yes'
             SummaryCodepage='1252' />
 
+        <!-- Windows installer Add/remove programs properties -->
+        <Property Id="ARPHELPLINK" Value="https://www.algorand.com" />
+        <Property Id="ARPPRODUCTICON" Value="AlgoIconBlack.ico" />
+        <Icon Id="AlgoIconBlack.ico" SourceFile="AlgoIconBlack.ico"/>
+
+        <!-- UI Customization -->
         <UIRef Id="WixUI_Minimal" />
         <WixVariable Id="WixUILicenseRtf" Value="COPYING.rtf" />
+        <WixVariable Id="WixUIBannerBmp" Value="images\header.bmp" />
+        <WixVariable Id="WixUIDialogBmp" Value="images\bacK.bmp" />
 
-        <Icon Id="AlgoIconBlack.ico" SourceFile="AlgoIconBlack.ico"/>
-        <Property Id="ARPPRODUCTICON" Value="AlgoIconBlack.ico" />
-
+        
         <!-- This CA just strips the trailing slash as a workaround
          for the shortcut argument to cmd.exe /k goal.exe -d -->
 
@@ -75,6 +77,8 @@
         <Media Id='1' Cabinet='Algorand_$(var.NETWORK).cab' EmbedCab='yes' DiskPrompt='Disk 1' />
         <Property Id='DiskPrompt' Value="Algorand Node Installer Media" />
 
+        <!-- Genesis and config file -->
+
         <Directory Id='TARGETDIR' Name='SourceDir'>
             <Directory Id='CommonAppDataFolder'>
                 <Directory Id='NodeDataDirAlgorand' Name='Algorand'>
@@ -90,6 +94,8 @@
                     </Directory>
                 </Directory>
             </Directory> 
+
+            <!-- Shortcut Setup -->
 
             <Directory Id="ProgramMenuFolder" Name="Programs">
                 <Directory Id="ApplicationProgramsFolder" Name="Algorand Node ($(var.NETWORK))">
@@ -122,6 +128,9 @@
                 <Directory Id='INSTALLDIR' Name='Algorand'>
                 <Directory Id='common' Name='Common'>
                     <Directory Id='commonbin' Name='Bin'>
+
+                    <!-- algodsvc Service Setup -->
+
                     <Component Id='AlgorandNodeService' Guid="244f1bfb-7ceb-4c05-b6b4-9dd1f7a5f88d">
                         <ServiceInstall
                             Id="AlgodsvcInstaller"
@@ -141,6 +150,9 @@
                     </Component>
                     </Directory>
                 </Directory>
+
+                <!-- Binary tool  directory setup -->
+
                 <Directory Id='netspecificdir' Name='$(var.NETWORK)'>
                     <Component Id='BINCOMP_algocfg' Guid='*'>
                         <File Id="algocfg" Name="algocfg.exe" DiskId="1" Source="$(var.GOBINFOLDER)/algocfg.exe" KeyPath="yes" />
