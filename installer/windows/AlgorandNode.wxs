@@ -1,7 +1,30 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0" encoding="utf-8"?>
 <Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'
      xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
-     <!-- Set service name and upgrade code depending on type of net -->
+     
+<!--
+Algorand Node Installer for Windows
+Version 1.0.0 (210119)
+
+WiX Definition File
+
+Copyright (C) 2021 Rand Labs
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
+
+   <!-- Set service name and upgrade code depending on type of net -->
 
     <?if $(var.NETWORK) = "betanet" ?>
         <?define FULLSERVICENAME = "algodsvc_betanet" ?>
@@ -42,18 +65,15 @@
             Compressed='yes'
             SummaryCodepage='1252' />
 
+        
+        <Property Id="ApplicationFolderName" Value="AlgorandFolder" />
+        <Property Id="WixAppFolder" Value="WixPerMachineFolder" />      
+
         <!-- Windows installer Add/remove programs properties -->
         <Property Id="ARPHELPLINK" Value="https://www.algorand.com" />
         <Property Id="ARPPRODUCTICON" Value="AlgoIconBlack.ico" />
-        <Icon Id="AlgoIconBlack.ico" SourceFile="AlgoIconBlack.ico"/>
+        <Icon Id="AlgoIconBlack.ico" SourceFile="res\AlgoIconBlack.ico"/>
 
-        <!-- UI Customization -->
-        <UIRef Id="WixUI_Minimal" />
-        <WixVariable Id="WixUILicenseRtf" Value="COPYING.rtf" />
-        <WixVariable Id="WixUIBannerBmp" Value="images\header.bmp" />
-        <WixVariable Id="WixUIDialogBmp" Value="images\bacK.bmp" />
-
-        
         <!-- This CA just strips the trailing slash as a workaround
          for the shortcut argument to cmd.exe /k goal.exe -d -->
 
@@ -77,9 +97,21 @@
         <Media Id='1' Cabinet='Algorand_$(var.NETWORK).cab' EmbedCab='yes' DiskPrompt='Disk 1' />
         <Property Id='DiskPrompt' Value="Algorand Node Installer Media" />
 
-        <!-- Genesis and config file -->
+        <!-- UI -->
+        
+        <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
+        <UIRef Id="WixUI_InstallDir_Algorand" />
+
+        <WixVariable Id="WixUILicenseRtf" Value="res\COPYING.rtf" />
+        <WixVariable Id="WixUIBannerBmp" Value="res\header.bmp" />
+        <WixVariable Id="WixUIDialogBmp" Value="res\back.bmp" />
+
+        <!-- Target directory starts here -->
 
         <Directory Id='TARGETDIR' Name='SourceDir'>
+
+        <!-- Genesis and config file -->
+
             <Directory Id='CommonAppDataFolder'>
                 <Directory Id='NodeDataDirAlgorand' Name='Algorand'>
                     <Directory Id='NodeDataDirAlgorandData' Name='data'>
